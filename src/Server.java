@@ -14,59 +14,25 @@ public class Server {
 		
 		
 		Scanner input = new Scanner(System.in);
-		System.out.println("Enter server address");
-		
-		boolean found = false;
+		String serverAddress;
 		
 		do {
-			
-			String serverAddress = input.nextLine();
-			
+			System.out.println("Enter server address");
+			serverAddress = input.nextLine();			
 			System.out.println(serverAddress);
-			
-			// verifier si presence de caractere non numeriques ou non point
-			
-			boolean goodChar = true;
-			
-			for(int c=0;c<serverAddress.length() && goodChar;c++) {
-				int car = serverAddress.charAt(c);
-				goodChar = (car <= 57 && car >= 48) || car == 46;
-			}
-
-			if(goodChar) {
-				for(int p=0;p<2;p++) {
-					
-					int point = serverAddress.indexOf(".");
-					
-					found = point != -1;
-					
-					if(found) {
-						int octet = Integer.parseInt(serverAddress.substring(0, point));
-						found = octet >= 0 && octet <= 255;
-						if(found) {
-							serverAddress = serverAddress.substring(point+1, serverAddress.length());
-						}
-					}
-				}
-				
-				int octet = Integer.parseInt(serverAddress.substring(2));
-				found = octet >= 0 && octet <= 255;
-			}
-			
-		}while(!found);
+		}while(!Tools.ipValidation(serverAddress));
 		
-
 		
 		input = new Scanner(System.in);
 
-		int serverPort;
+		String serverPort;
 		
 		do {
 
 			System.out.println("Enter port");
-			serverPort = Integer.parseInt(input.nextLine());
+			serverPort = input.nextLine();
 			
-		}while (serverPort < 5000 || serverPort > 5050);
+		}while (Tools.portValidation(serverPort));
 		
 		
 		System.out.println(serverPort);
@@ -75,7 +41,7 @@ public class Server {
 		
 		
 		
-/*		Listener = new ServerSocket();
+		Listener = new ServerSocket();
 		
 		Listener.setReuseAddress(true);
 		
@@ -92,7 +58,7 @@ public class Server {
 		}finally {
 			Listener.close();
 		}
-		*/
+		
 	}
 	
 }
