@@ -10,6 +10,8 @@ public class Server {
 
 	public static void main(String[] args) throws Exception {
 		
+		System.out.println("hello");
+		
 		int clientNumber = 0;
 		
 		
@@ -32,11 +34,10 @@ public class Server {
 			System.out.println("Enter port");
 			serverPort = input.nextLine();
 			
-		}while (Tools.portValidation(serverPort));
+		}while (!Tools.portValidation(serverPort));
 		
 		
 		System.out.println(serverPort);
-		
 		
 		
 		
@@ -47,9 +48,9 @@ public class Server {
 		
 		InetAddress serverIp = InetAddress.getByName(serverAddress);
 		
-		Listener.bind(new InetSocketAddress(serverIp, serverPort));
+		Listener.bind(new InetSocketAddress(serverIp, Integer.parseInt(serverPort)));
 		
-		System.out.format("The server is running on %s:%d%n", serverAddress, serverPort);
+		System.out.format("The server is running on %s:%d%n", serverAddress, Integer.parseInt(serverPort));
 		
 		try {
 			while(true) {
