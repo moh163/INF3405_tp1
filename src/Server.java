@@ -17,10 +17,11 @@ public class Server {
 		System.out.println("Enter server address");
 		
 		boolean found = false;
+		String serverAddress;
 		
 		do {
+			String serverAddress1 = input.nextLine();
 			
-			String serverAddress = input.nextLine();
 			
 			System.out.println(serverAddress);
 			
@@ -28,28 +29,28 @@ public class Server {
 			
 			boolean goodChar = true;
 			
-			for(int c=0;c<serverAddress.length() && goodChar;c++) {
-				int car = serverAddress.charAt(c);
+			for(int c=0;c<serverAddress1.length() && goodChar;c++) {
+				int car = serverAddress1.charAt(c);
 				goodChar = (car <= 57 && car >= 48) || car == 46;
 			}
 
 			if(goodChar) {
 				for(int p=0;p<2;p++) {
 					
-					int point = serverAddress.indexOf(".");
+					int point = serverAddress1.indexOf(".");
 					
 					found = point != -1;
 					
 					if(found) {
-						int octet = Integer.parseInt(serverAddress.substring(0, point));
+						int octet = Integer.parseInt(serverAddress1.substring(0, point));
 						found = octet >= 0 && octet <= 255;
 						if(found) {
-							serverAddress = serverAddress.substring(point+1, serverAddress.length());
+							serverAddress = serverAddress1.substring(point+1, serverAddress1.length());
 						}
 					}
 				}
 				
-				int octet = Integer.parseInt(serverAddress.substring(2));
+				int octet = Integer.parseInt(serverAddress1.substring(2));
 				found = octet >= 0 && octet <= 255;
 			}
 			
@@ -75,8 +76,8 @@ public class Server {
 		
 		
 		
-/*		Listener = new ServerSocket();
-		
+		Listener = new ServerSocket();
+	
 		Listener.setReuseAddress(true);
 		
 		InetAddress serverIp = InetAddress.getByName(serverAddress);
@@ -92,7 +93,7 @@ public class Server {
 		}finally {
 			Listener.close();
 		}
-		*/
+		
 	}
 	
 }
