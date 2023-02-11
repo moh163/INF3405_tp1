@@ -10,81 +10,46 @@ public class Server {
 
 	public static void main(String[] args) throws Exception {
 		
+		System.out.println("hello");
+		
 		int clientNumber = 0;
 		
 		
 		Scanner input = new Scanner(System.in);
-		System.out.println("Enter server address");
-		
-		boolean found = false;
 		String serverAddress;
 		
 		do {
-			String serverAddress1 = input.nextLine();
-			
-			
+			System.out.println("Enter server address");
+			serverAddress = input.nextLine();			
 			System.out.println(serverAddress);
-			
-			// verifier si presence de caractere non numeriques ou non point
-			
-			boolean goodChar = true;
-			
-			for(int c=0;c<serverAddress1.length() && goodChar;c++) {
-				int car = serverAddress1.charAt(c);
-				goodChar = (car <= 57 && car >= 48) || car == 46;
-			}
 
-			if(goodChar) {
-				for(int p=0;p<2;p++) {
-					
-					int point = serverAddress1.indexOf(".");
-					
-					found = point != -1;
-					
-					if(found) {
-						int octet = Integer.parseInt(serverAddress1.substring(0, point));
-						found = octet >= 0 && octet <= 255;
-						if(found) {
-							serverAddress = serverAddress1.substring(point+1, serverAddress1.length());
-						}
-					}
-				}
-				
-				int octet = Integer.parseInt(serverAddress1.substring(2));
-				found = octet >= 0 && octet <= 255;
-			}
-			
-		}while(!found);
-		
-
-		
+		}while(!Tools.ipValidation(serverAddress));
 		input = new Scanner(System.in);
 
-		int serverPort;
+		String serverPort;
 		
 		do {
 
 			System.out.println("Enter port");
-			serverPort = Integer.parseInt(input.nextLine());
+			serverPort = input.nextLine();
 			
-		}while (serverPort < 5000 || serverPort > 5050);
+		}while (!Tools.portValidation(serverPort));
 		
 		
 		System.out.println(serverPort);
 		
 		
 		
-		
-		
+
 		Listener = new ServerSocket();
-	
+		
 		Listener.setReuseAddress(true);
 		
 		InetAddress serverIp = InetAddress.getByName(serverAddress);
 		
-		Listener.bind(new InetSocketAddress(serverIp, serverPort));
+		Listener.bind(new InetSocketAddress(serverIp, Integer.parseInt(serverPort)));
 		
-		System.out.format("The server is running on %s:%d%n", serverAddress, serverPort);
+		System.out.format("The server is running on %s:%d%n", serverAddress, Integer.parseInt(serverPort));
 		
 		try {
 			while(true) {
