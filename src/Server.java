@@ -24,7 +24,6 @@ public class Server {
 			System.out.println(serverAddress);
 
 		}while(!Tools.ipValidation(serverAddress));
-		input = new Scanner(System.in);
 
 		String serverPort;
 		
@@ -56,6 +55,7 @@ public class Server {
 				new ClientHandler(Listener.accept(), clientNumber++).start();
 			}
 		}finally {
+			input.close();
 			Listener.close();
 		}
 		
