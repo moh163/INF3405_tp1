@@ -1,19 +1,20 @@
-import java.io.Console;
+package server;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.Iterator;
 public class ClientHandler extends Thread { // pour traiter la demande de chaque client sur un socket particulier
 	private Socket socket; 
 	private int clientNumber; 
-	private String root="C:\\";
+	private String root = System.getProperty("user.dir")+File.separator+"src"+File.separator+"server"+File.separator+"res";
 	private File currentFile = new File(root);
 	
 	public ClientHandler(Socket socket, int clientNumber) {
 		this.socket = socket;
 		this.clientNumber = clientNumber; 
+		System.out.println();
+		System.out.println(root);
 		System.out.println("New connection with client #" + clientNumber + " at" + socket);
 	}
 	
@@ -27,26 +28,25 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 			out.writeUTF("Hello from server - you are client#" + clientNumber); // envoi de message
 			do {
 				commandFull = in.readUTF();
-				System.out.println(commandFull);
+				System.out.println("full : "+commandFull);
 				
 				indexSpace=commandFull.indexOf(" ");
 				commandName= indexSpace==-1 ? commandFull : commandFull.substring(0, commandFull.indexOf(" "))  ;
 				commandOption= indexSpace==-1 ? null:commandFull.substring(indexSpace+1);
+				System.out.println("name : "+commandName);
+				System.out.println("options : "+commandOption);
+				
 				switch(commandName) {
 				case "cd":
 					cd(commandOption);
-					out.writeUTF("Vous êtes dans le dossier "+commandOption+".");
+					out.writeUTF("Vous êtes dans le dossier "+currentFile+".");
 					break;
 				case "ls":
-					String[] enfantStrings = ls();
-					for (String enfant : enfantStrings) {
-						out.writeUTF(enfant);
-						System.out.println(enfant);
-					}
+					out.writeUTF(ls());
 					break;
 				case "mkdir":
-					mkdir(commandOption);
-					out.writeUTF("Le dossier "+commandOption+" a été créé.");
+					boolean isCreated = mkdir(commandOption);
+					out.writeUTF("Le dossier "+commandOption+(isCreated? " a" : " n'a pas")+" été créé.");
 					break;
 				case "upload":
 					out.writeUTF("Le fichier "+commandOption+" a bien été téléverser.");
@@ -84,21 +84,21 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 		}
 		
 	}
-	private String[] ls() {
+	private String ls() {
 		File[] enfantFiles = currentFile.listFiles();
-		String[] returnString= new String[enfantFiles.length];
+		String returnString= "";
 		for (int i=0;i<enfantFiles.length;i++){
 			if(enfantFiles[i].isDirectory()) {
-				returnString[i]="[Folder] "+enfantFiles[i].getName();
+				returnString+="[Folder] "+enfantFiles[i].getName()+"\n";
 			}else if (enfantFiles[i].isFile()) {
-				returnString[i]="[File] "+enfantFiles[i].getName();
+				returnString+="[File] "+enfantFiles[i].getName()+"\n";
 			}
 		}
 		return returnString;
 	}
-	private void mkdir(String commandOption) {
+	private boolean mkdir(String commandOption) {
 		File tempFile = new File(currentFile, commandOption);
-		tempFile.mkdir();
+		return tempFile.mkdir();
 	}
 	private void upload() {
 		

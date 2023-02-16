@@ -1,4 +1,6 @@
+package client;
 import java.io.DataInputStream;
+import common.Tools;
 import java.io.DataOutputStream;
 import java.net.Socket;
 import java.util.Scanner;
@@ -11,38 +13,25 @@ public class Client {
 	public static void main(String[] args) throws Exception {
 		
 		// Adresse et port du serveur
-//		String serverAddress = "127.0.0.1";
-//		int port = 5000;
+
 		Scanner input = new Scanner(System.in);
-		String serverAddress;
+//		String serverAddress = Tools.readAddress(input);
+//		String serverPort = Tools.readPort(input);
+		String serverAddress = "127.0.0.1";
+		String serverPort = "5000";	
 		
-		do {
-			System.out.println("Enter server address to connect to");
-			serverAddress = input.nextLine();			
-			System.out.println(serverAddress);
-
-		}while(!Tools.ipValidation(serverAddress));
-		String serverPort;
-		
-		do {
-
-			System.out.println("Enter port to connect to");
-			serverPort = input.nextLine();
-			
-		}while (!Tools.portValidation(serverPort));
-		
-		// Création d'une nouvelle connexion aves le serveur
+		// Création d'une nouvelle connexion avec le serveur
 		socket = new Socket(serverAddress, Integer.parseInt(serverPort));
-		System.out.format("Serveur lancé sur [%s:%d]", serverAddress, Integer.parseInt(serverPort));
+		System.out.format("Serveur lancé sur [%s:%s]", serverAddress, serverPort);
 		
-		// Création d'un canal entrant pour recevoir les messages envoyés, par le serveur
+		// Création d'un canal entrant et sortant pour recevoir les messages envoyés, par le serveur
 		DataInputStream in = new DataInputStream(socket.getInputStream());
+		DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 		
-		// Attente de la réception d'un message envoyé par le, server sur le canal
+		// Attente de la réception d'un message envoyé par le serveur, server sur le canal
 		String helloMessageFromServer = in.readUTF();
 		System.out.println(helloMessageFromServer);
 		boolean isClosed=false;
-		DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 		String command;
 		do {
 			command=input.nextLine();
@@ -52,6 +41,8 @@ public class Client {
 			}
 			out.writeUTF(command);
 			
+			// afficher la réponse du serveur
+			System.out.println(in.readUTF());
 			
 		}while(!isClosed);
 		// Fermeture de la connexion avec le serveur
