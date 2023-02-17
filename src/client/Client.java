@@ -2,13 +2,19 @@ package client;
 import java.io.DataInputStream;
 import common.Tools;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.net.Socket;
+import java.net.SocketOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Scanner;
 
 // Application client
 public class Client {
 	
 	private static Socket socket;
+	
+	private static Path root = Path.of(System.getProperty("user.dir"), "src", "client", "res");
 	
 	public static void main(String[] args) throws Exception {
 		
@@ -24,27 +30,50 @@ public class Client {
 		socket = new Socket(serverAddress, Integer.parseInt(serverPort));
 		System.out.format("Serveur lancé sur [%s:%s]", serverAddress, serverPort);
 		
-		// Création d'un canal entrant et sortant pour recevoir les messages envoyés, par le serveur
+		// Création d'un canal entrant et sortant
 		DataInputStream in = new DataInputStream(socket.getInputStream());
 		DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 		
-		// Attente de la réception d'un message envoyé par le serveur, server sur le canal
+		// Attente de la réception d'un message envoyé par le serveur
 		String helloMessageFromServer = in.readUTF();
 		System.out.println(helloMessageFromServer);
-		boolean isClosed=false;
+		
+
+		System.out.println("socket options : ");
+//		System.out.println(socket.getOption(SO_SNDBUF));
+		
 		String command;
 		do {
-			command=input.nextLine();
-			if(command.equals("exit")) {
-				isClosed=true;
-				System.out.println(isClosed);
-			}
+			command = input.nextLine();
 			out.writeUTF(command);
+			
+			String[] commandParts = Tools.readCommand(command);
+			
+			switch(commandParts[0]){
+			case "upload" : 
+				if(!commandParts[1].isEmpty()) {
+					Path dataPath = Path.of(root.toString(), commandParts[1]);
+					byte[] data = Files.readAllBytes(dataPath);
+
+					out.writeUTF(commandParts[1]);
+					out.writeUTF(data.length+"");
+					out.write(data);
+
+					System.out.println("client name: {"+commandParts[1]+"}");
+					System.out.println("client data length : "+data.length);
+				}else {
+					System.out.println("no data");
+				}
+				break;
+			case "download" : 
+				break;
+			}
 			
 			// afficher la réponse du serveur
 			System.out.println(in.readUTF());
 			
-		}while(!isClosed);
+		}while(!command.equals("exit"));
+		
 		// Fermeture de la connexion avec le serveur
 		System.out.println("Connexion interrompu avec le serveur");
 		input.close();

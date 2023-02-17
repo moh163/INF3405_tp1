@@ -1,14 +1,27 @@
 package server;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Base64;
+
+import common.Tools;
 public class ClientHandler extends Thread { // pour traiter la demande de chaque client sur un socket particulier
 	private Socket socket; 
 	private int clientNumber; 
-	private String root = System.getProperty("user.dir")+File.separator+"src"+File.separator+"server"+File.separator+"res";
-	private File currentFile = new File(root);
+	
+	private Path root = Path.of(System.getProperty("user.dir"), "src", "server", "res");
+	
+	private File currentFile = new File(root.toString());
 	
 	public ClientHandler(Socket socket, int clientNumber) {
 		this.socket = socket;
@@ -24,42 +37,57 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 			DataInputStream in = new DataInputStream(socket.getInputStream());
 			String commandFull, commandName, commandOption;
 			int indexSpace;
+			
 			DataOutputStream out = new DataOutputStream(socket.getOutputStream()); // création de canal d’envoi 
 			out.writeUTF("Hello from server - you are client#" + clientNumber); // envoi de message
+			
 			do {
 				commandFull = in.readUTF();
-				System.out.println("full : "+commandFull);
+				String[] commandParts = Tools.readCommand(commandFull);
 				
-				indexSpace=commandFull.indexOf(" ");
-				commandName= indexSpace==-1 ? commandFull : commandFull.substring(0, commandFull.indexOf(" "))  ;
-				commandOption= indexSpace==-1 ? null:commandFull.substring(indexSpace+1);
-				System.out.println("name : "+commandName);
-				System.out.println("options : "+commandOption);
+				commandName = commandParts[0];
+				commandOption = commandParts[1];
 				
 				switch(commandName) {
 				case "cd":
 					cd(commandOption);
-					out.writeUTF("Vous êtes dans le dossier "+currentFile+".");
+					out.writeUTF("Vous êtes dans le dossier "+currentFile);
 					break;
 				case "ls":
 					out.writeUTF(ls());
 					break;
 				case "mkdir":
 					boolean isCreated = mkdir(commandOption);
-					out.writeUTF("Le dossier "+commandOption+(isCreated? " a" : " n'a pas")+" été créé.");
+					out.writeUTF("Le dossier "+commandOption+(isCreated? " a" : " n'a pas")+" été créé");
 					break;
 				case "upload":
-					out.writeUTF("Le fichier "+commandOption+" a bien été téléverser.");
+					
+					if(!commandOption.isEmpty()) {
+
+						String nameAndFormat = in.readUTF();
+						
+						int length = Integer.parseInt(in.readUTF());
+						byte[] buffer = new byte[length];
+						in.read(buffer);
+
+						System.out.println("server data length : "+length);
+						System.out.println("nameAndFormat : "+nameAndFormat);
+						
+						boolean uploaded = upload(nameAndFormat, buffer);
+
+						out.writeUTF("Le fichier "+commandOption+(uploaded?" a":" n'a pas")+" été bien téléverser");
+					}
+					
 					break;
 				case "download":
-					out.writeUTF("Le fichier "+commandOption+" a bien été téléchargé.");
+					out.writeUTF("Le fichier "+commandOption+" a bien été téléchargé");
 					break;
 				case "exit":
 					System.out.println(commandName);
-					out.writeUTF("Vous avez été déconnecté avec succès.");
+					out.writeUTF("Vous avez été déconnecté avec succès");
 					break;
 				default:
-					out.writeUTF("Commande non reconnu. Veuillez réessayer.");
+					out.writeUTF("Commande non reconnu. Veuillez réessayer");
 					break;
 				}
 				
@@ -85,13 +113,13 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 		
 	}
 	private String ls() {
-		File[] enfantFiles = currentFile.listFiles();
+		File[] childrenFiles = currentFile.listFiles();
 		String returnString= "";
-		for (int i=0;i<enfantFiles.length;i++){
-			if(enfantFiles[i].isDirectory()) {
-				returnString+="[Folder] "+enfantFiles[i].getName()+"\n";
-			}else if (enfantFiles[i].isFile()) {
-				returnString+="[File] "+enfantFiles[i].getName()+"\n";
+		for (int i=0;i<childrenFiles.length;i++){
+			if(childrenFiles[i].isDirectory()) {
+				returnString+="[Folder] "+childrenFiles[i].getName()+"\n";
+			}else if (childrenFiles[i].isFile()) {
+				returnString+="[File] "+childrenFiles[i].getName()+"\n";
 			}
 		}
 		return returnString;
@@ -100,12 +128,34 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 		File tempFile = new File(currentFile, commandOption);
 		return tempFile.mkdir();
 	}
-	private void upload() {
+	private boolean upload(String nameAndFormat, byte[] buffer) {
 		
+		Path filePath = Path.of(currentFile.toString(), nameAndFormat);
+		File outputFile = filePath.toFile();
+		
+		try {
+			OutputStream fileStream = new FileOutputStream(outputFile);
+			fileStream.write(buffer);
+			fileStream.close();
+			
+			return true;
+			
+		}catch(IOException e) {
+			
+			return false;
+		}
 	}
 	private void download() {
 		
 	}
 		
 }
+
+
+
+
+
+
+
+
 
