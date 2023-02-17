@@ -1,8 +1,10 @@
 package client;
+import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import common.Tools;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.net.Socket;
 import java.net.SocketOption;
 import java.nio.file.Files;
@@ -52,12 +54,21 @@ public class Client {
 			switch(commandParts[0]){
 			case "upload" : 
 				if(!commandParts[1].isEmpty()) {
-					Path dataPath = Path.of(root.toString(), commandParts[1]);
-					byte[] data = Files.readAllBytes(dataPath);
-
+					File file= new File(Path.of(root.toString(), commandParts[1]).toString());
+					byte[] data = new byte[8192]; //Files.readAllBytes(dataPath);
+					FileInputStream fileIn = new FileInputStream(file);
+					DataInputStream dataIn = new DataInputStream(new BufferedInputStream(fileIn));
+					
+					int count;
 					out.writeUTF(commandParts[1]);
-					out.writeUTF(data.length+"");
-					out.write(data);
+					while ((count = dataIn.read(data)) > 0)
+					{
+					  out.write(data, 0, count);
+					}
+
+//					out.writeUTF(commandParts[1]);
+//					out.writeUTF(data.length+"");
+//					out.write(data);
 
 					System.out.println("client name: {"+commandParts[1]+"}");
 					System.out.println("client data length : "+data.length);
