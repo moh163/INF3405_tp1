@@ -66,14 +66,14 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 
 						String nameAndFormat = in.readUTF();
 						
-						int length = Integer.parseInt(in.readUTF());
-						byte[] buffer = new byte[length];
-						in.read(buffer);
+						//int length = Integer.parseInt(in.readUTF());
+						
+						//in.read(buffer);
 
-						System.out.println("server data length : "+length);
+						//System.out.println("server data length : "+length);
 						System.out.println("nameAndFormat : "+nameAndFormat);
 						
-						boolean uploaded = upload(nameAndFormat, buffer);
+						boolean uploaded = upload(nameAndFormat,in);
 
 						out.writeUTF("Le fichier "+commandOption+(uploaded?" a":" n'a pas")+" été bien téléverser");
 					}
@@ -104,6 +104,7 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 			System.out.println("Connection with client# " + clientNumber + " closed");
 		}
 	}
+	
 	private void cd(String commandOption) {
 		if(commandOption=="..") {
 			// Ajoter le code pour revenir d'un niveau
@@ -112,6 +113,7 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 		}
 		
 	}
+	
 	private String ls() {
 		File[] childrenFiles = currentFile.listFiles();
 		String returnString= "";
@@ -124,18 +126,26 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 		}
 		return returnString;
 	}
+	
 	private boolean mkdir(String commandOption) {
 		File tempFile = new File(currentFile, commandOption);
 		return tempFile.mkdir();
 	}
-	private boolean upload(String nameAndFormat, byte[] buffer) {
+	
+	private boolean upload(String nameAndFormat, DataInputStream in) {
 		
 		Path filePath = Path.of(currentFile.toString(), nameAndFormat);
 		File outputFile = filePath.toFile();
 		
+		int size;
 		try {
+			byte[] buffer = new byte[socket.getReceiveBufferSize()];
+			size=socket.getReceiveBufferSize();
 			OutputStream fileStream = new FileOutputStream(outputFile);
-			fileStream.write(buffer);
+			int count;
+			 while((count = in.read(buffer)) >0){
+		            fileStream.write(buffer, 0, count);
+		     }
 			fileStream.close();
 			
 			return true;
