@@ -5,8 +5,12 @@ import common.Tools;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketOption;
+import java.net.SocketTimeoutException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Scanner;
@@ -16,9 +20,12 @@ public class Client {
 	
 	private static Socket socket;
 	
-	private static Path root = Path.of(System.getProperty("user.dir"), "src", "client", "res");
+	
 	
 	public static void main(String[] args) throws Exception {
+		Path root = Path.of(System.getProperty("user.dir"), "src", "client", "res");
+		File currentFile = new File(root.toString());
+
 		
 		// Adresse et port du serveur
 
@@ -75,6 +82,40 @@ public class Client {
 				}
 				break;
 			case "download" : 
+				
+				if(!commandParts[1].isEmpty()) {
+			    Path filePath = Path.of(currentFile.toString(), commandParts[1]);
+			    File outputFile = filePath.toFile();
+
+			    try {
+			        byte[] buffer = new byte[socket.getReceiveBufferSize()];
+			        OutputStream fileStream = new FileOutputStream(outputFile);
+			        int count;
+			        socket.setSoTimeout(5000); // set a timeout of 5 seconds
+			        while(true){
+			            try {
+			                count = in.read(buffer);
+			                if (count < 0) {
+			                    break; // end of stream
+			                }
+			                fileStream.write(buffer, 0, count);
+			            } catch (SocketTimeoutException e) {
+			                System.out.println("Timeout reached.");
+			                break;
+			            }
+			        }
+			        System.out.println("Sortie de boucle");
+			        socket.setSoTimeout(0);
+			        fileStream.close();
+			        System.out.println("Le fichier "+commandParts[1]+" a été bien téléchargé");
+			    } catch(IOException e) {
+			        System.out.println("Le fichier "+commandParts[1]+" n'a pas été bien téléchargé");
+			        socket.setSoTimeout(0);
+			    }
+				}else {
+					System.out.println("no data");
+				}
+				
 				break;
 			}
 			

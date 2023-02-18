@@ -1,14 +1,17 @@
 package server;
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -81,6 +84,7 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 					
 					break;
 				case "download":
+					download(commandOption, out);
 					out.writeUTF("Le fichier "+commandOption+" a bien été téléchargé");
 					break;
 				case "exit":
@@ -132,14 +136,12 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 		File tempFile = new File(currentFile, commandOption);
 		return tempFile.mkdir();
 	}
-	private boolean upload(String nameAndFormat, DataInputStream in) {
+	private boolean upload(String nameAndFormat, DataInputStream in) throws SocketException {
 	    Path filePath = Path.of(currentFile.toString(), nameAndFormat);
 	    File outputFile = filePath.toFile();
-
-	    int size;
+	    
 	    try {
 	        byte[] buffer = new byte[socket.getReceiveBufferSize()];
-	        size=socket.getReceiveBufferSize();
 	        OutputStream fileStream = new FileOutputStream(outputFile);
 	        int count;
 	        socket.setSoTimeout(5000); // set a timeout of 5 seconds
@@ -160,6 +162,7 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 	        fileStream.close();
 	        return true;
 	    } catch(IOException e) {
+	        socket.setSoTimeout(0);
 	        return false;
 	    }
 	}
@@ -187,8 +190,31 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 //			return false;
 //		}
 //	}
-	private void download() {
-		
+	private void download(String commandName, DataOutputStream out) {
+		try {
+		if(!commandName.isEmpty()) {
+			File file= new File(Path.of(root.toString(), commandName).toString());
+			byte[] data = new byte[8192]; //Files.readAllBytes(dataPath);
+			FileInputStream fileIn = new FileInputStream(file);
+			DataInputStream dataIn = new DataInputStream(new BufferedInputStream(fileIn));
+			
+			int count;
+			out.writeUTF(commandName);
+			while ((count = dataIn.read(data)) >= 0)
+			{
+			  out.write(data, 0, count);
+			}
+			System.out.println("sortie de boucle client");
+
+
+			System.out.println("client name: {"+commandName+"}");
+			System.out.println("client data length : "+data.length);
+		}else {
+			System.out.println("no data");
+		}
+		}catch(IOException e){
+			System.out.println("Une erreur est surevenue: "+ e);
+		}
 	}
 		
 }
