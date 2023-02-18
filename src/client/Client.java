@@ -23,10 +23,10 @@ public class Client {
 		// Adresse et port du serveur
 
 		Scanner input = new Scanner(System.in);
-//		String serverAddress = Tools.readAddress(input);
-//		String serverPort = Tools.readPort(input);
-		String serverAddress = "127.0.0.1";
-		String serverPort = "5000";	
+		String serverAddress = Tools.readAddress(input);
+		String serverPort = Tools.readPort(input);
+		//String serverAddress = "127.0.0.1";
+		//String serverPort = "5000";	
 		
 		// Création d'une nouvelle connexion avec le serveur
 		socket = new Socket(serverAddress, Integer.parseInt(serverPort));
@@ -39,10 +39,6 @@ public class Client {
 		// Attente de la réception d'un message envoyé par le serveur
 		String helloMessageFromServer = in.readUTF();
 		System.out.println(helloMessageFromServer);
-		
-
-		System.out.println("socket options : ");
-//		System.out.println(socket.getOption(SO_SNDBUF));
 		
 		String command;
 		do {
