@@ -163,30 +163,7 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 	        return false;
 	    }
 	}
-
 	
-//	private boolean upload(String nameAndFormat, DataInputStream in) {
-//		
-//		Path filePath = Path.of(currentFile.toString(), nameAndFormat);
-//		File outputFile = filePath.toFile();
-//		try {
-//			byte[] buffer = new byte[socket.getReceiveBufferSize()];
-//			OutputStream fileStream = new FileOutputStream(outputFile);
-//			int count;
-//			 while((count = in.read(buffer)) >=1){
-//		            fileStream.write(buffer, 0, count);
-//		            System.out.println(count);
-//		     }
-//			 System.out.println("Sortie de boucle");
-//			fileStream.close();
-//			
-//			return true;
-//			
-//		}catch(IOException e) {
-//			
-//			return false;
-//		}
-//	}
 	private void download() {
 		
 	}
