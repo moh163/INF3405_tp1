@@ -65,23 +65,19 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 					
 					if(!commandOption.isEmpty()) {
 
+						int length = Integer.parseInt(in.readUTF());
 						String nameAndFormat = in.readUTF();
 						
-						//int length = Integer.parseInt(in.readUTF());
-						
-						//in.read(buffer);
-
-						//System.out.println("server data length : "+length);
-						System.out.println("nameAndFormat : "+nameAndFormat);
-						
-						boolean uploaded = upload(nameAndFormat,in);
+						boolean uploaded = upload(nameAndFormat, length,in);
 
 						out.writeUTF("Le fichier "+commandOption+(uploaded?" a":" n'a pas")+" été bien téléverser");
 					}
 					
 					break;
 				case "download":
-					out.writeUTF("Le fichier "+commandOption+" a bien été téléchargé");
+					if(!commandOption.isEmpty()) {
+						out.writeUTF("Le fichier "+commandOption+" a bien été téléchargé");
+					}
 					break;
 				case "exit":
 					System.out.println(commandName);
@@ -107,10 +103,10 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 	}
 	
 	private void cd(String commandOption) {
-		if(commandOption=="..") {
-			// Ajoter le code pour revenir d'un niveau
+		if(commandOption.equals("..")) {
+			currentFile = new File(currentFile.getParent());
 		}else {
-			currentFile = new File(currentFile.toString()+"\\"+commandOption);
+			currentFile = new File(Path.of(currentFile.toString(), commandOption).toString());
 		}
 		
 	}
@@ -132,7 +128,7 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 		File tempFile = new File(currentFile, commandOption);
 		return tempFile.mkdir();
 	}
-	private boolean upload(String nameAndFormat, DataInputStream in) {
+	private boolean upload(String nameAndFormat, int length, DataInputStream in) {
 	    Path filePath = Path.of(currentFile.toString(), nameAndFormat);
 	    File outputFile = filePath.toFile();
 
@@ -141,22 +137,11 @@ public class ClientHandler extends Thread { // pour traiter la demande de chaque
 	        byte[] buffer = new byte[socket.getReceiveBufferSize()];
 	        size=socket.getReceiveBufferSize();
 	        OutputStream fileStream = new FileOutputStream(outputFile);
-	        int count;
-	        socket.setSoTimeout(5000); // set a timeout of 5 seconds
-	        while(true){
-	            try {
-	                count = in.read(buffer);
-	                if (count < 0) {
-	                    break; // end of stream
-	                }
-	                fileStream.write(buffer, 0, count);
-	            } catch (SocketTimeoutException e) {
-	                System.out.println("Timeout reached.");
-	                break;
-	            }
+	        int count = 0;
+	        while((length -= count) > 0){
+	        	count = in.read(buffer);
+                fileStream.write(buffer, 0, count);
 	        }
-	        System.out.println("Sortie de boucle");
-	        socket.setSoTimeout(0);
 	        fileStream.close();
 	        return true;
 	    } catch(IOException e) {
