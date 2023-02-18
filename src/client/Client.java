@@ -61,14 +61,12 @@ public class Client {
 					
 					int count;
 					out.writeUTF(commandParts[1]);
-					while ((count = dataIn.read(data)) > 0)
+					while ((count = dataIn.read(data)) >= 0)
 					{
 					  out.write(data, 0, count);
 					}
+					System.out.println("sortie de boucle client");
 
-//					out.writeUTF(commandParts[1]);
-//					out.writeUTF(data.length+"");
-//					out.write(data);
 
 					System.out.println("client name: {"+commandParts[1]+"}");
 					System.out.println("client data length : "+data.length);
